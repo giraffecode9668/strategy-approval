@@ -1,4 +1,4 @@
-package com.giraffe.strategy;
+package com.giraffe.strategy.frame;
 
 import com.giraffe.utils.CommonSpringContextUtil;
 import com.giraffe.utils.LoginUser;

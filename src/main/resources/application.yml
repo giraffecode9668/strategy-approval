@@ -1,1 +1,12 @@
-spring.application.name=strategy-approval
+spring:
+  application:
+    name: strategy-approval
+  datasource:
+    url: jdbc:mysql://localhost:3306/strategy_approval?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+server:
+  port: 8088
+

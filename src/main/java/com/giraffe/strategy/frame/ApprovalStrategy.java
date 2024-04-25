@@ -1,4 +1,4 @@
-package com.giraffe.strategy;
+package com.giraffe.strategy.frame;
 
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;

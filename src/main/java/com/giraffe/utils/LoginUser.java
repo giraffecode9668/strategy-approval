@@ -1,14 +1,9 @@
-package hk.sohan.easy4j.admin.modular.entity;
+package com.giraffe.utils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -17,7 +12,7 @@ import java.util.Objects;
  * @author angel;
  */
 @Data
-public class LoginUser implements UserDetails {
+public class LoginUser {
 
     private static final long serialVersionUID = 1L;
 
@@ -29,111 +24,96 @@ public class LoginUser implements UserDetails {
         this.realname = realname;
     }
 
-    public LoginUser(Collection<? extends GrantedAuthority> authorities) {
-        this.authorities = authorities;
-    }
+//    public LoginUser(Collection<? extends GrantedAuthority> authorities) {
+//        this.authorities = authorities;
+//    }
 
-    @ApiModelProperty(value = "用户主键ID")
+    // @ApiModelProperty(value = "用户主键ID")
     private Long id;
 
-    @ApiModelProperty(value = "UUID")
+    // @ApiModelProperty(value = "UUID")
     private String uuid;
 
-    @ApiModelProperty(value = "头像")
+    // @ApiModelProperty(value = "头像")
     private String avatar;
 
-    @ApiModelProperty(value = "账户")
+    // @ApiModelProperty(value = "账户")
     private String account;
 
     @JsonIgnore
     private String password;
 
-    @ApiModelProperty(value = "真实姓名")
+    // @ApiModelProperty(value = "真实姓名")
     private String realname;
 
-    @ApiModelProperty(value = "生日")
+    // @ApiModelProperty(value = "生日")
     private LocalDate birthday;
 
-    @ApiModelProperty(value = "性别 1男  2女")
+    // @ApiModelProperty(value = "性别 1男  2女")
     private String sex;
 
-    @ApiModelProperty(value = "邮箱地址")
+    // @ApiModelProperty(value = "邮箱地址")
     private String email;
 
-    @ApiModelProperty(value = "电话号码")
+    // @ApiModelProperty(value = "电话号码")
     private String mobile;
 
-    @ApiModelProperty(value = "状态")
+    // @ApiModelProperty(value = "状态")
     private Integer status;
 
-    @ApiModelProperty(value = "是否修改初始密码：0 未修改 | 1 已修改")
+    // @ApiModelProperty(value = "是否修改初始密码：0 未修改 | 1 已修改")
     private Integer modifyPassword;
 
-    @ApiModelProperty(value = "权限列表")
-    private Collection<? extends GrantedAuthority> authorities;
+    // @ApiModelProperty(value = "权限列表")
+    // private Collection<? extends GrantedAuthority> authorities;
 
-    @ApiModelProperty(value = "部门列表")
-    private List<SysDept> depts;
+    // @ApiModelProperty(value = "部门列表")
+    // private List<SysDept> depts;
 
-    @ApiModelProperty(value = "角色列表")
-    private List<SysRole> roles;
+    // @ApiModelProperty(value = "角色列表")
+    // private List<SysRole> roles;
 
-    @ApiModelProperty(value = "部门ID")
+    // @ApiModelProperty(value = "部门ID")
     private Long deptId;
 
-    @ApiModelProperty(value = "盐加密")
+    // @ApiModelProperty(value = "盐加密")
     private String salt;
 
-    @ApiModelProperty(value = "公司ID")
+    // @ApiModelProperty(value = "公司ID")
     private String customerUuid;
 
-    @ApiModelProperty(value = "公司ID")
+    // @ApiModelProperty(value = "公司ID")
     private Long customerId;
 
-    @ApiModelProperty(value = "1 主账号  2 子账号")
+    // @ApiModelProperty(value = "1 主账号  2 子账号")
     private Integer type;
 
     public Boolean isSuperAdmin() {
         return Objects.equals(this.getAccount(), "admin");
     }
 
-    @Override
-    @JsonIgnore
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.authorities;
-    }
 
-    @JsonIgnore
-    @Override
-    public String getPassword() {
-        return this.password;
-    }
 
-    @Override
     public String getUsername() {
         return this.account;
     }
 
     @JsonIgnore
-    @Override
     public boolean isAccountNonExpired() {
         return true;
     }
 
     @JsonIgnore
-    @Override
     public boolean isAccountNonLocked() {
         return true;
     }
 
     @JsonIgnore
-    @Override
     public boolean isCredentialsNonExpired() {
         return true;
     }
 
     @JsonIgnore
-    @Override
     public boolean isEnabled() {
         return true;
     }

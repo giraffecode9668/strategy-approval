@@ -1,25 +1,19 @@
-package cn.sohan.m2m.order.strategy.cardApproval;
+package com.giraffe.strategy.test;
 
-import cn.sohan.m2m.order.basic.model.entity.CardApproval;
-import cn.sohan.m2m.pkg.basic.model.entity.PackageApproval;
-import cn.sohan.m2m.tool.module.strategy.CustomApprovalBO;
+import com.giraffe.entity.TestApproval;
+import com.giraffe.strategy.frame.CustomApprovalBO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.List;
-
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class CardApprovalCustomApprovalBO extends CustomApprovalBO {
+public class TestApprovalCustomApprovalBO extends CustomApprovalBO {
 
-    public CardApprovalCustomApprovalBO(String strategyName, String definitionKey, Long definitionValue, String nodeKey, CardApproval cardApproval) {
+    public TestApprovalCustomApprovalBO(String strategyName, String definitionKey, Long definitionValue, String nodeKey, TestApproval testApproval) {
         super(strategyName, definitionKey, definitionValue, nodeKey);
-        this.cardApproval = cardApproval;
+        this.testApproval = testApproval;
     }
 
-    private CardApproval cardApproval;
+    private TestApproval testApproval;
 
-    // 中间传值
-    // 企微通知Id
-    private List<String> qyUserIds;
 }

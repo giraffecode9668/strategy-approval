@@ -1,17 +1,12 @@
-package com.sohan.easy4j.exception;
+package com.giraffe.utils;
 
 
-import com.sohan.easy4j.enums.Easy4jHttpStatusEnum;
-import com.sohan.easy4j.enums.HttpStatusEnum;
-import com.sohan.enums.ExceptionCodeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
  * 业务异常
  *
- * @author yangzongmin
- * @date 2019-07-19
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -20,28 +15,8 @@ public class BusinessException extends RuntimeException {
     private Integer code;
     private String msg;
 
-    public BusinessException() {
-        this(HttpStatusEnum.BAD_REQUEST.code(), HttpStatusEnum.BAD_REQUEST.msg());
-    }
-
     public BusinessException(String msg) {
-        this(HttpStatusEnum.BAD_REQUEST.code(), msg);
-    }
-
-    public BusinessException(Easy4jHttpStatusEnum httpStatusEnum) {
-        this(httpStatusEnum.code(), httpStatusEnum.msg());
-    }
-
-    public BusinessException(ExceptionCodeEnum exceptionCodeEnum) {
-        this(exceptionCodeEnum.getErrorCode(), exceptionCodeEnum.getMessage());
-    }
-
-    public BusinessException(Easy4jHttpStatusEnum easy4jHttpStatusEnum, Object... params) {
-        this(easy4jHttpStatusEnum.code(), easy4jHttpStatusEnum.msg(), params);
-    }
-
-    public BusinessException(ErrorCodeEnum errorCodeEnum) {
-        this(errorCodeEnum.getCode(), errorCodeEnum.getMsg());
+        this(500, msg);
     }
 
     public BusinessException(Integer code, String msg) {

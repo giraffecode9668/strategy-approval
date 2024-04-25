@@ -1,6 +1,8 @@
-package com.giraffe.strategyapproval.controller;
+package com.giraffe.controller;
 
 
+import com.giraffe.service.CustomApproveService;
+import com.giraffe.strategy.frame.ProcessStatusEntity;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,14 +14,14 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping(value = "/admin/customFlowNode")
+@RequestMapping(value = "/customFlowNode")
 public class CustomFlowNodeController {
 
     @Resource
     private CustomApproveService customApproveService;
 
     @GetMapping("/queryProcessStatus")
-    public List<ProcessStatusEntity> queryProcessStatus(@RequestParam String approvalId, @RequestParam Integer type) {
+    public List<ProcessStatusEntity> queryProcessStatus(@RequestParam String approvalId, @RequestParam String type) {
         return customApproveService.queryProcessStatusByIdAndType(approvalId, type);
     }
 

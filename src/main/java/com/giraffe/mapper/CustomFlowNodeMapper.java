@@ -1,7 +1,7 @@
-package cn.sohan.m2m.tool.module.mapper;
+package com.giraffe.mapper;
 
-import cn.sohan.m2m.tool.module.model.entity.CustomFlowNode;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.giraffe.entity.CustomFlowNode;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

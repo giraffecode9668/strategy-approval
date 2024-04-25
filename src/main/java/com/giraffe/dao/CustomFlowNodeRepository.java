@@ -1,9 +1,9 @@
-package cn.sohan.m2m.tool.module.dao;
+package com.giraffe.dao;
 
-import cn.sohan.m2m.tool.module.mapper.CustomFlowNodeMapper;
-import cn.sohan.m2m.tool.module.model.entity.CustomFlowNode;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.sohan.enums.CustomFlowNodeStatusEnum;
+import com.giraffe.entity.CustomFlowNode;
+import com.giraffe.enums.CustomFlowNodeStatusEnum;
+import com.giraffe.mapper.CustomFlowNodeMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

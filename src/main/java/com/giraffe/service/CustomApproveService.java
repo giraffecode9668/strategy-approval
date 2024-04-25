@@ -1,26 +1,20 @@
-package cn.sohan.m2m.tool.module.service;
+package com.giraffe.service;
 
-import cn.sohan.m2m.customer.basic.service.ClientBusinessBasicService;
-import cn.sohan.m2m.framework.util.SohanSpringContextUtil;
-import cn.sohan.m2m.tool.module.dao.CustomFlowNodeRepository;
-import cn.sohan.m2m.tool.module.model.entity.CustomFlowNode;
-import cn.sohan.m2m.tool.module.model.entity.ProcessStatusEntity;
-import cn.sohan.m2m.tool.module.strategy.ApprovalStrategy;
-import cn.sohan.m2m.tool.module.strategy.CustomApprovalBO;
-import cn.sohan.m2m.tool.module.strategy.CustomFlowNodeCandidateUserVO;
-import cn.sohan.m2m.tool.module.strategy.CustomFlowNodeVO;
-import com.sohan.constants.WorkFlowConstantValues;
-import com.sohan.easy4j.exception.BusinessException;
-import com.sohan.enums.CustomFlowNodeStatusEnum;
-import com.sohan.util.StringUtils;
-import hk.sohan.easy4j.admin.modular.service.SysUserService;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.giraffe.dao.CustomFlowNodeRepository;
+import com.giraffe.entity.CustomFlowNode;
+import com.giraffe.enums.CustomFlowNodeStatusEnum;
+import com.giraffe.strategy.frame.*;
+import com.giraffe.utils.BusinessException;
 import jakarta.annotation.Resource;
-import org.apache.commons.compress.utils.Lists;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -63,14 +57,10 @@ public class CustomApproveService {
         return strategy.getTodoFlowNodeVO(bo);
     }
 
-    public List<ProcessStatusEntity> queryProcessStatusByIdAndType(String approvalId, Integer type) {
+    public List<ProcessStatusEntity> queryProcessStatusByIdAndType(String approvalId, String type) {
         List<ProcessStatusEntity> result = new ArrayList<>();
-        WorkFlowConstantValues.ProcessDefinitionKeyEnum definitionKeyEnum = WorkFlowConstantValues.ProcessDefinitionKeyEnum.getByCode(type);
-        if (Objects.isNull(definitionKeyEnum)) {
-            return result;
-        }
 
-        List<CustomFlowNode> flowNodeList = customFlowNodeRepository.getFlowNodeList(definitionKeyEnum.getCustomKey(), Long.valueOf(approvalId));
+        List<CustomFlowNode> flowNodeList = customFlowNodeRepository.getFlowNodeList(type, Long.valueOf(approvalId));
         for (CustomFlowNode node : flowNodeList) {
             ProcessStatusEntity processStatusEntity = new ProcessStatusEntity();
             processStatusEntity.setTaskName(node.getNodeName());
@@ -109,7 +99,7 @@ public class CustomApproveService {
 
     private List<CustomFlowNodeCandidateUserVO> getFlowNodeCandidateUserList(CustomFlowNode customFlowNode, Consumer<String> roleCodeConsumer) {
         if (Objects.isNull(customFlowNode)) {
-            return Lists.newArrayList();
+            return new ArrayList<>();
         }
         List<CustomFlowNodeCandidateUserVO> result = new ArrayList<>();
         if (Objects.nonNull(customFlowNode.getNodeCandidateUserId()) && customFlowNode.getNodeCandidateUserId() != 0) {
@@ -123,157 +113,15 @@ public class CustomApproveService {
             // 角色编码消费者
             roleCodeConsumer.accept(nodeCandidateRoleName);
 
-            SohanSpringContextUtil.getBean(SysUserService.class).findValidUserListByRoleCode(nodeCandidateRoleCode).forEach(sysUser -> {
-                CustomFlowNodeCandidateUserVO customFlowNodeCandidateUserVO = new CustomFlowNodeCandidateUserVO();
-                customFlowNodeCandidateUserVO.setUserId(sysUser.getId());
-                customFlowNodeCandidateUserVO.setUserName(sysUser.getRealname());
-                result.add(customFlowNodeCandidateUserVO);
-            });
-        } else if (Objects.nonNull(customFlowNode.getNodeCandidateOprCustomerId()) && customFlowNode.getNodeCandidateOprCustomerId() != 0) {
-            Long deliveryManagerId = SohanSpringContextUtil.getBean(ClientBusinessBasicService.class).getDeliveryManagerIdByCustomerId(customFlowNode.getNodeCandidateOprCustomerId());
-
-            Optional.ofNullable(SohanSpringContextUtil.getBean(SysUserService.class).getById(deliveryManagerId)).ifPresent(user -> {
-                CustomFlowNodeCandidateUserVO customFlowNodeCandidateUserVO = new CustomFlowNodeCandidateUserVO();
-                customFlowNodeCandidateUserVO.setUserId(user.getId());
-                customFlowNodeCandidateUserVO.setUserName(user.getRealname());
-                result.add(customFlowNodeCandidateUserVO);
-            });
+            // 用户查询
+//            CommonSpringContextUtil.getBean(SysUserService.class).findValidUserListByRoleCode(nodeCandidateRoleCode).forEach(sysUser -> {
+//                CustomFlowNodeCandidateUserVO customFlowNodeCandidateUserVO = new CustomFlowNodeCandidateUserVO();
+//                customFlowNodeCandidateUserVO.setUserId(sysUser.getId());
+//                customFlowNodeCandidateUserVO.setUserName(sysUser.getRealname());
+//                result.add(customFlowNodeCandidateUserVO);
+//            });
         }
         return result;
     }
 
-    public void migrateCommissionApprovalNode(List<ProcessStatusEntity> importProcessStatusEntities, String definitionKey, Long definitionValue) {
-        for (ProcessStatusEntity importProcessStatusEntity : importProcessStatusEntities) {
-            CustomFlowNode customFlowNode = new CustomFlowNode();
-            customFlowNode.setDefinitionKey(definitionKey);
-            customFlowNode.setDefinitionValue(definitionValue);
-            customFlowNode.setNodeName(importProcessStatusEntity.getTaskName());
-
-            if (Objects.equals("运营审批", importProcessStatusEntity.getTaskName())) {
-                customFlowNode.setNodeKey("10");
-            } else if (Objects.equals("财务BP审批", importProcessStatusEntity.getTaskName()) || Objects.equals("财务审批", importProcessStatusEntity.getTaskName())) {
-                customFlowNode.setNodeKey("11");
-            } else if (Objects.equals("一级客户审批", importProcessStatusEntity.getTaskName())) {
-                customFlowNode.setNodeKey("12");
-            } else if (Objects.equals("CFO审批", importProcessStatusEntity.getTaskName())) {
-                customFlowNode.setNodeKey("13");
-            } else {
-                continue;
-            }
-
-            Integer nodeStatus = CustomFlowNodeStatusEnum.NOT_EXECUTED.getCode();
-            if (Objects.nonNull(importProcessStatusEntity.getEndTime())) {
-                if (Objects.equals(importProcessStatusEntity.getApproved(), "Y")) {
-                    nodeStatus = CustomFlowNodeStatusEnum.PASS.getCode();
-                } else if (Objects.equals(importProcessStatusEntity.getApproved(), "N")) {
-                    nodeStatus = CustomFlowNodeStatusEnum.REJECT.getCode();
-                }
-            }
-
-            customFlowNode.setNodeStatus(nodeStatus);
-
-            if (!Objects.equals(nodeStatus, CustomFlowNodeStatusEnum.NOT_EXECUTED.getCode())) {
-                customFlowNode.setNodeCompleteUserId(StringUtils.isNotBlank(importProcessStatusEntity.getAssignee()) ? Long.valueOf(importProcessStatusEntity.getAssignee()) : null);
-                customFlowNode.setNodeCompleteUserName(importProcessStatusEntity.getApprovedName());
-            } else {
-                customFlowNode.setNodeCandidateUserId(StringUtils.isNotBlank(importProcessStatusEntity.getAssignee()) ? Long.valueOf(importProcessStatusEntity.getAssignee()) : null);
-                customFlowNode.setNodeCandidateUserName(importProcessStatusEntity.getApprovedName());
-            }
-
-            customFlowNode.setRefuseReason(importProcessStatusEntity.getComment());
-            customFlowNode.setNodeOrder(customFlowNodeRepository.getMaxOrder(definitionKey, definitionValue) + 1);
-
-            customFlowNode.setNodeCompleteTime(importProcessStatusEntity.getEndTime());
-            customFlowNode.setCreateTime(importProcessStatusEntity.getCreateTime());
-
-            customFlowNodeRepository.save(customFlowNode);
-        }
-
-    }
-
-    public void migratePackageApprovalNode(List<ProcessStatusEntity> importProcessStatusEntities, String definitionKey, Long definitionValue) {
-        for (ProcessStatusEntity importProcessStatusEntity : importProcessStatusEntities) {
-            CustomFlowNode customFlowNode = new CustomFlowNode();
-            customFlowNode.setDefinitionKey(definitionKey);
-            customFlowNode.setDefinitionValue(definitionValue);
-            customFlowNode.setNodeName(importProcessStatusEntity.getTaskName());
-
-            if (Objects.equals("运营审批", importProcessStatusEntity.getTaskName())) {
-                customFlowNode.setNodeKey("10");
-            } else {
-                continue;
-            }
-
-            Integer nodeStatus = CustomFlowNodeStatusEnum.NOT_EXECUTED.getCode();
-            if (Objects.nonNull(importProcessStatusEntity.getEndTime())) {
-                if (Objects.equals(importProcessStatusEntity.getApproved(), "Y")) {
-                    nodeStatus = CustomFlowNodeStatusEnum.PASS.getCode();
-                } else if (Objects.equals(importProcessStatusEntity.getApproved(), "N")) {
-                    nodeStatus = CustomFlowNodeStatusEnum.REJECT.getCode();
-                }
-            }
-
-            customFlowNode.setNodeStatus(nodeStatus);
-
-            if (!Objects.equals(nodeStatus, CustomFlowNodeStatusEnum.NOT_EXECUTED.getCode())) {
-                customFlowNode.setNodeCompleteUserId(StringUtils.isNotBlank(importProcessStatusEntity.getAssignee()) ? Long.valueOf(importProcessStatusEntity.getAssignee()) : null);
-                customFlowNode.setNodeCompleteUserName(importProcessStatusEntity.getApprovedName());
-            } else {
-                customFlowNode.setNodeCandidateUserId(StringUtils.isNotBlank(importProcessStatusEntity.getAssignee()) ? Long.valueOf(importProcessStatusEntity.getAssignee()) : null);
-                customFlowNode.setNodeCandidateUserName(importProcessStatusEntity.getApprovedName());
-            }
-
-            customFlowNode.setRefuseReason(importProcessStatusEntity.getComment());
-            customFlowNode.setNodeOrder(customFlowNodeRepository.getMaxOrder(definitionKey, definitionValue) + 1);
-
-            customFlowNode.setNodeCompleteTime(importProcessStatusEntity.getEndTime());
-            customFlowNode.setCreateTime(importProcessStatusEntity.getCreateTime());
-
-            customFlowNodeRepository.save(customFlowNode);
-        }
-
-    }
-
-    public void migrateCardApprovalNode(List<ProcessStatusEntity> importProcessStatusEntities, String definitionKey, Long definitionValue) {
-        for (ProcessStatusEntity importProcessStatusEntity : importProcessStatusEntities) {
-            CustomFlowNode customFlowNode = new CustomFlowNode();
-            customFlowNode.setDefinitionKey(definitionKey);
-            customFlowNode.setDefinitionValue(definitionValue);
-            customFlowNode.setNodeName(importProcessStatusEntity.getTaskName());
-
-            if (Objects.equals("运营审批", importProcessStatusEntity.getTaskName())) {
-                customFlowNode.setNodeKey("1");
-            } else {
-                continue;
-            }
-
-            Integer nodeStatus = CustomFlowNodeStatusEnum.NOT_EXECUTED.getCode();
-            if (Objects.nonNull(importProcessStatusEntity.getEndTime())) {
-                if (Objects.equals(importProcessStatusEntity.getApproved(), "Y")) {
-                    nodeStatus = CustomFlowNodeStatusEnum.PASS.getCode();
-                } else if (Objects.equals(importProcessStatusEntity.getApproved(), "N")) {
-                    nodeStatus = CustomFlowNodeStatusEnum.REJECT.getCode();
-                }
-            }
-
-            customFlowNode.setNodeStatus(nodeStatus);
-
-            if (!Objects.equals(nodeStatus, CustomFlowNodeStatusEnum.NOT_EXECUTED.getCode())) {
-                customFlowNode.setNodeCompleteUserId(StringUtils.isNotBlank(importProcessStatusEntity.getAssignee()) ? Long.valueOf(importProcessStatusEntity.getAssignee()) : null);
-                customFlowNode.setNodeCompleteUserName(importProcessStatusEntity.getApprovedName());
-            } else {
-                customFlowNode.setNodeCandidateUserId(StringUtils.isNotBlank(importProcessStatusEntity.getAssignee()) ? Long.valueOf(importProcessStatusEntity.getAssignee()) : null);
-                customFlowNode.setNodeCandidateUserName(importProcessStatusEntity.getApprovedName());
-            }
-
-            customFlowNode.setRefuseReason(importProcessStatusEntity.getComment());
-            customFlowNode.setNodeOrder(customFlowNodeRepository.getMaxOrder(definitionKey, definitionValue) + 1);
-
-            customFlowNode.setNodeCompleteTime(importProcessStatusEntity.getEndTime());
-            customFlowNode.setCreateTime(importProcessStatusEntity.getCreateTime());
-
-            customFlowNodeRepository.save(customFlowNode);
-        }
-
-    }
 }

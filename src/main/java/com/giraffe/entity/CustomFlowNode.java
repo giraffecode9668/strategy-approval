@@ -1,4 +1,4 @@
-package com.giraffe.strategyapproval.entity;
+package com.giraffe.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;

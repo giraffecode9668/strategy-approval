@@ -1,24 +1,25 @@
-package cn.sohan.m2m.order.strategy.cardApproval;
+package com.giraffe.strategy.test;
 
-import cn.sohan.m2m.framework.util.SohanSpringContextUtil;
-import cn.sohan.m2m.module.commission.service.commission.strategy.AbstractCommissionApprovalStrategy;
-import cn.sohan.m2m.order.basic.model.entity.CardApproval;
-import cn.sohan.m2m.order.basic.model.enums.CardApprovalStatusEnum;
-import cn.sohan.m2m.pkg.module.strategy.packageApproval.AbstractPackageApprovalStrategy;
-import cn.sohan.m2m.pkg.module.strategy.packageApproval.PackageApprovalCustomApprovalBO;
-import cn.sohan.m2m.tool.module.model.entity.CustomFlowNode;
-import cn.sohan.m2m.tool.module.service.CustomApproveService;
-import cn.sohan.m2m.tool.module.strategy.CustomApprovalBO;
-import com.sohan.enums.CustomFlowNodeStatusEnum;
-import com.sohan.enums.PackageApprovalStatusEnum;
+
+import com.giraffe.dao.TestApprovalRepository;
+import com.giraffe.entity.CustomFlowNode;
+import com.giraffe.entity.TestApproval;
+import com.giraffe.enums.CustomFlowNodeStatusEnum;
+import com.giraffe.service.CustomApproveService;
+import com.giraffe.strategy.frame.CustomApprovalBO;
+import com.giraffe.utils.CommonSpringContextUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
 @Slf4j
-@Component("cardCancelApprovalStrategy")
-public class CardCancelApprovalStrategy extends AbstractCommissionApprovalStrategy {
+@Component("testCancelApprovalStrategy")
+public class TestCancelApprovalStrategy extends AbstractTestApprovalStrategy {
+
+    @Resource
+    private TestApprovalRepository testApprovalRepository;
 
 
     @Override
@@ -35,7 +36,7 @@ public class CardCancelApprovalStrategy extends AbstractCommissionApprovalStrate
         customFlowNode.setDefinitionKey(definitionKey);
         customFlowNode.setDefinitionValue(definitionValue);
         customFlowNode.setNodeKey(nodeKey);
-        customFlowNode.setNodeName("撤销申请");
+        customFlowNode.setNodeName(TestApprovalStatusEnum.CANCEL.getDesc());
         customFlowNode.setNodeStatus(CustomFlowNodeStatusEnum.NOT_EXECUTED.getCode());
 
         return customFlowNode;
@@ -43,19 +44,19 @@ public class CardCancelApprovalStrategy extends AbstractCommissionApprovalStrate
 
     @Override
     public void postProcessAfterCreateNode(CustomApprovalBO bo) {
-        CardApprovalCustomApprovalBO cardCustomApprovalBO = AbstractCardApprovalStrategy.getCardCustomApprovalBO(bo);
-        CardApproval cardApproval = cardCustomApprovalBO.getCardApproval();
+        TestApprovalCustomApprovalBO cardCustomApprovalBO = AbstractTestApprovalStrategy.getTestCustomApprovalBO(bo);
+        TestApproval testApproval = cardCustomApprovalBO.getTestApproval();
 
         // 完成 取消
-        CardApprovalCustomApprovalBO nextBO = new CardApprovalCustomApprovalBO(
-                CardApprovalStatusEnum.CANCEL.getStrategy(),
+        TestApprovalCustomApprovalBO nextBO = new TestApprovalCustomApprovalBO(
+                TestApprovalStatusEnum.CANCEL.getStrategy(),
                 bo.getDefinitionKey(),
                 bo.getDefinitionValue(),
-                CardApprovalStatusEnum.CANCEL.getCode().toString(),
-                cardApproval
+                TestApprovalStatusEnum.CANCEL.getCode().toString(),
+                testApproval
         );
 
-        SohanSpringContextUtil.getBean(CustomApproveService.class).doApprove(nextBO, true, null, null);
+        CommonSpringContextUtil.getBean(CustomApproveService.class).doApprove(nextBO, true, null, null);
 
     }
 
@@ -64,6 +65,11 @@ public class CardCancelApprovalStrategy extends AbstractCommissionApprovalStrate
     @Override
     public void postProcessAfterExecuteNode(CustomApprovalBO bo, boolean isPass, String refuseReason, Map<String, Object> variables) {
 
+        TestApprovalCustomApprovalBO testCustomApprovalBO = AbstractTestApprovalStrategy.getTestCustomApprovalBO(bo);
+        TestApproval testApproval = testCustomApprovalBO.getTestApproval();
+
+        testApproval.setApprovalStatus(TestApprovalStatusEnum.CANCEL.getCode());
+        testApprovalRepository.updateById(testApproval);
 
     }
 

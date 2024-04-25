@@ -1,4 +1,4 @@
-package com.sohan.enums;
+package com.giraffe.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
