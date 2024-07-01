@@ -28,4 +28,10 @@ public class TestApprovalController {
     public void cancel(@RequestParam Long id) {
         testApprovalService.cancel(id);
     }
+
+    @PostMapping("/drawSequence")
+    public String drawSequence(@RequestParam Long id) {
+        return testApprovalService.drawSequence(id);
+    }
+
 }

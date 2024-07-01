@@ -27,8 +27,29 @@ public interface ApprovalStatusInterface {
         return null;
     }
 
+    static ApprovalStatusInterface getNextStatusYByDefinitionKeyAndNodeKey(String definitionKey, String nodeKey) {
+        for (ApprovalStatusInterface status : getAllImplementations()) {
+            if (Objects.equals(status.getDefinitionKey(), definitionKey) && Objects.equals(status.getNodeKey(), nodeKey)) {
+                return status.getNextStatusY();
+            }
+        }
+        return null;
+    }
+
+    static ApprovalStatusInterface getNextStatusNByDefinitionKeyAndNodeKey(String definitionKey, String nodeKey) {
+        for (ApprovalStatusInterface status : getAllImplementations()) {
+            if (Objects.equals(status.getDefinitionKey(), definitionKey) && Objects.equals(status.getNodeKey(), nodeKey)) {
+                return status.getNextStatusN();
+            }
+        }
+        return null;
+    }
+
     String getStrategy();
     String getNodeKey();
+    String getNodeName();
+    String getDefinitionKey();
+
     ApprovalStatusInterface getNextStatusY();
     ApprovalStatusInterface getNextStatusN();
 

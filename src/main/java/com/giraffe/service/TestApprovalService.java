@@ -2,6 +2,7 @@ package com.giraffe.service;
 
 import com.giraffe.dao.TestApprovalRepository;
 import com.giraffe.entity.TestApproval;
+import com.giraffe.strategy.frame.CustomApprovalDrawBO;
 import com.giraffe.strategy.test.AbstractTestApprovalStrategy;
 import com.giraffe.strategy.test.TestApprovalCustomApprovalBO;
 import com.giraffe.strategy.test.TestApprovalStatusEnum;
@@ -71,4 +72,13 @@ public class TestApprovalService {
 
     }
 
+    public String drawSequence(Long id) {
+        TestApproval testApproval = testApprovalRepository.getById(id);
+
+        // 提交自定义节点流程
+        TestApprovalStatusEnum statusEnum = TestApprovalStatusEnum.getByCode(testApproval.getApprovalStatus());
+
+        CustomApprovalDrawBO drawBO = new CustomApprovalDrawBO(statusEnum.getStrategy(), statusEnum.getDefinitionKey(), testApproval.getId(), statusEnum.getNodeKey());
+        return customApproveService.doGetDrawSequenceMermaidGrammar(drawBO);
+    }
 }

@@ -7,12 +7,12 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum TestApprovalStatusEnum implements ApprovalStatusInterface {
 
-    NULL(-1, "空状态", null, null, null),
-    INIT_SUBMIT(1, "提交申请", "testInitApprovalStrategy", null, null),
-    OPERATION_APPROVAL(2, "运营审批", "testOprApprovalStrategy", null, null),
-    PASS(10, "通过申请", "", null, null),
-    REJECT(11, "驳回申请", "", null, null),
-    CANCEL(12, "取消申请", "testCancelApprovalStrategy", null, null),
+    NULL("testApproval", -1, "空状态", null, null, null),
+    INIT_SUBMIT("testApproval",1, "提交申请", "testInitApprovalStrategy", null, null),
+    OPERATION_APPROVAL("testApproval",2, "运营审批", "testOprApprovalStrategy", null, null),
+    PASS("testApproval",10, "通过申请", "", null, null),
+    REJECT("testApproval",11, "驳回申请", "", null, null),
+    CANCEL("testApproval",12, "取消申请", "testCancelApprovalStrategy", null, null),
     ;
 
     static {
@@ -22,6 +22,7 @@ public enum TestApprovalStatusEnum implements ApprovalStatusInterface {
         OPERATION_APPROVAL.nextStatusN = REJECT;
     }
 
+    private final String definitionKey;
     private final Integer code;
     private final String desc;
     private final String strategy;
@@ -41,5 +42,10 @@ public enum TestApprovalStatusEnum implements ApprovalStatusInterface {
     @Override
     public String getNodeKey() {
         return String.valueOf(this.code);
+    }
+
+    @Override
+    public String getNodeName() {
+        return this.getDesc();
     }
 }

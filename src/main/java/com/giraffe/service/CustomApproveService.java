@@ -5,7 +5,10 @@ import com.giraffe.dao.CustomFlowNodeRepository;
 import com.giraffe.entity.CustomFlowNode;
 import com.giraffe.enums.CustomFlowNodeStatusEnum;
 import com.giraffe.strategy.frame.*;
+import com.giraffe.strategy.test.ApprovalStatusInterface;
 import com.giraffe.utils.BusinessException;
+import com.giraffe.utils.CommonSpringContextUtil;
+import com.giraffe.utils.MermaidBuilder;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -122,6 +125,66 @@ public class CustomApproveService {
 //            });
         }
         return result;
+    }
+
+    public String doGetDrawSequenceMermaidGrammar(CustomApprovalDrawBO drawBO) {
+        CustomFlowNodeRepository flowNodeRepository = CommonSpringContextUtil.getBean(CustomFlowNodeRepository.class);
+        List<CustomFlowNode> flowNodeList = flowNodeRepository.getFlowNodeList(drawBO.getDefinitionKey(), drawBO.getDefinitionValue());
+
+        MermaidBuilder mermaidBuilder = new MermaidBuilder();
+
+        // 增加已完成节点 路线
+        CustomFlowNode preNode = null;
+        for (CustomFlowNode customFlowNode : flowNodeList) {
+            if (Objects.nonNull(preNode)) {
+                mermaidBuilder.addLink(preNode.getNodeName(), customFlowNode.getNodeName());
+            }
+            preNode = customFlowNode;
+        }
+
+        if (Objects.isNull(preNode)) {
+            return "";
+        }
+
+//        if (!Objects.equals(preNode.getNodeKey(), drawBO.getNodeKey())) {
+//            System.out.println("流程图绘制异常：节点状态值异常");
+//            return "";
+//        }
+
+        // 待处理节点 路线
+        if (Objects.equals(preNode.getNodeStatus(), 1)) {
+            this.drawBelowNode(preNode.getDefinitionKey(), preNode.getNodeKey(), preNode.getNodeName(), mermaidBuilder);
+        }
+        // 已完成节点 路线
+        if (Objects.equals(preNode.getNodeStatus(), 3)) {
+            mermaidBuilder.addLink(preNode.getNodeName(), "完成");
+        }
+        // 拒绝节点 路线
+        if (Objects.equals(preNode.getNodeStatus(), 4)) {
+            mermaidBuilder.addForkLink(preNode.getNodeName(), "终止", preNode.getRefuseReason());
+        }
+        // 拒绝节点 路线
+        if (Objects.equals(preNode.getNodeStatus(), 5)) {
+            mermaidBuilder.addForkLink(preNode.getNodeName(), "终止", preNode.getRefuseReason());
+        }
+        return mermaidBuilder.buildLR();
+    }
+
+    private void drawBelowNode(String definitionKey, String nodeKey, String nodeName, MermaidBuilder mermaidBuilder) {
+        ApprovalStatusInterface nextStatusY = ApprovalStatusInterface.getNextStatusYByDefinitionKeyAndNodeKey(definitionKey, nodeKey);
+        ApprovalStatusInterface nextStatusN = ApprovalStatusInterface.getNextStatusNByDefinitionKeyAndNodeKey(definitionKey, nodeKey);
+
+
+        if (Objects.nonNull(nextStatusY)) {
+
+
+            mermaidBuilder.addDottedLink(nodeName, nextStatusY.getNodeName());
+            drawBelowNode(nextStatusY.getDefinitionKey(), nextStatusY.getNodeKey(), nextStatusY.getNodeName(), mermaidBuilder);
+        }
+        if (Objects.nonNull(nextStatusN)) {
+            mermaidBuilder.addDottedLink(nodeName, nextStatusN.getNodeName());
+            drawBelowNode(nextStatusN.getDefinitionKey(), nextStatusN.getNodeKey(), nextStatusN.getNodeName(), mermaidBuilder);
+        }
     }
 
 }

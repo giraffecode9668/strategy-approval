@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.giraffe.dao.CustomFlowNodeRepository;
 import com.giraffe.entity.CustomFlowNode;
+import com.giraffe.strategy.test.ApprovalStatusInterface;
 import com.giraffe.utils.BusinessException;
 import com.giraffe.utils.CommonSpringContextUtil;
+import com.giraffe.utils.MermaidBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,11 +39,11 @@ public interface ApprovalStrategy {
         customFlowNodeVO.setNodeCompleteUserId(customFlowNode.getNodeCompleteUserId());
         customFlowNodeVO.setNodeCompleteUserName(customFlowNode.getNodeCompleteUserName());
         customFlowNodeVO.setNodeCandidateRoleName(customFlowNode.getNodeCandidateRoleName());
-        customFlowNodeVO.setNodeCandidateUserList(this.getFlowNodeCandidateUserList(customFlowNode));
+        customFlowNodeVO.setNodeCandidateUserList(getFlowNodeCandidateUserList(customFlowNode));
         return customFlowNodeVO;
     }
 
-    default List<CustomFlowNodeCandidateUserVO> getFlowNodeCandidateUserList(CustomFlowNode customFlowNode) {
+    static List<CustomFlowNodeCandidateUserVO> getFlowNodeCandidateUserList(CustomFlowNode customFlowNode) {
         if (Objects.isNull(customFlowNode)) {
             return new ArrayList<>();
         }
@@ -68,7 +70,7 @@ public interface ApprovalStrategy {
 
     default void checkPermission(CustomFlowNode customFlowNode) {
         // 校验权限
-        List<CustomFlowNodeCandidateUserVO> flowNodeCandidateUserList = this.getFlowNodeCandidateUserList(customFlowNode);
+        List<CustomFlowNodeCandidateUserVO> flowNodeCandidateUserList = getFlowNodeCandidateUserList(customFlowNode);
         if (CollectionUtils.isNotEmpty(flowNodeCandidateUserList)) {
             boolean hasPermission = false;
             for (CustomFlowNodeCandidateUserVO userVO : flowNodeCandidateUserList) {
@@ -88,5 +90,7 @@ public interface ApprovalStrategy {
             }
         }
     }
+
+
 
 }
