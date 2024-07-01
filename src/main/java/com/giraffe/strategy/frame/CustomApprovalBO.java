@@ -16,14 +16,20 @@ public class CustomApprovalBO {
 
     private String nodeKey;
 
+    private boolean commonExecutePostProcess = false;
+
+    // 自定义参数
+    private Object customData;
+
     public CustomApprovalBO() {
     }
 
-    public CustomApprovalBO(String strategyName, String definitionKey, Long definitionValue, String nodeKey) {
+    public CustomApprovalBO(String strategyName, String definitionKey, Long definitionValue, String nodeKey, Object customData) {
         this.strategyName = strategyName;
         this.definitionKey = definitionKey;
         this.definitionValue = definitionValue;
         this.nodeKey = nodeKey;
+        this.customData = customData;
     }
 
     // 中间变量

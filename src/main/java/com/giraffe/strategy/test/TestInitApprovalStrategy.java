@@ -51,6 +51,7 @@ public class TestInitApprovalStrategy extends AbstractTestApprovalStrategy {
 
     @Override
     public void postProcessAfterExecuteNode(CustomApprovalBO bo, boolean isPass, String refuseReason, Map<String, Object> variables) {
+        /*
         TestApprovalCustomApprovalBO testCustomApprovalBO = AbstractTestApprovalStrategy.getTestCustomApprovalBO(bo);
 
         // 路由下一个节点 自动流转到 运营审批
@@ -67,7 +68,8 @@ public class TestInitApprovalStrategy extends AbstractTestApprovalStrategy {
             CommonSpringContextUtil.getBean(CustomApproveService.class).doCreate(nextBO);
 
         }
-
+        */
+        bo.setCommonExecutePostProcess(true);
     }
 
     @Override

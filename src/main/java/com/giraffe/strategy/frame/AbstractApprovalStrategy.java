@@ -1,5 +1,11 @@
 package com.giraffe.strategy.frame;
 
+import com.giraffe.service.CustomApproveService;
+import com.giraffe.strategy.test.AbstractTestApprovalStrategy;
+import com.giraffe.strategy.test.ApprovalStatusInterface;
+import com.giraffe.strategy.test.TestApprovalCustomApprovalBO;
+import com.giraffe.strategy.test.TestApprovalStatusEnum;
+import com.giraffe.utils.BusinessException;
 import com.giraffe.utils.CommonSpringContextUtil;
 import com.giraffe.utils.LoginUser;
 import com.giraffe.dao.CustomFlowNodeRepository;
@@ -16,6 +22,7 @@ public abstract class AbstractApprovalStrategy implements ApprovalStrategy {
 
     public abstract CustomFlowNode buildCreateNode(CustomApprovalBO bo);
     public abstract void postProcessAfterCreateNode(CustomApprovalBO bo);
+    // 返回是否继续执行通用流程 true:继续执行 false:不继续执行
     public abstract void postProcessAfterExecuteNode(CustomApprovalBO bo, boolean isPass, String refuseReason, Map<String, Object> variables);
     public abstract void postProcessAfterFinishNode(CustomApprovalBO bo);
 
@@ -61,6 +68,10 @@ public abstract class AbstractApprovalStrategy implements ApprovalStrategy {
 
         // 执行节点后续操作
         this.postProcessAfterExecuteNode(bo, isPass, refuseReason, variables);
+        if (bo.isCommonExecutePostProcess()) {
+            this.commonHandlePostProcessAfterExecuteNode(bo, isPass, refuseReason, variables);
+        }
+
     }
 
 
@@ -109,6 +120,43 @@ public abstract class AbstractApprovalStrategy implements ApprovalStrategy {
         unFinishFlowNodeList.forEach(flowNode -> {
             flowNodeRepository.updateStatus(flowNode.getId(), CustomFlowNodeStatusEnum.TERMINATED.getCode());
         });
+    }
+
+    public abstract <T extends CustomApprovalBO> T getTargetCustomApprovalBO(CustomApprovalBO bo);
+
+    /**
+     * 默认实现当前节点完成，流转下一个节点 从枚举中获取定义
+     */
+    public void commonHandlePostProcessAfterExecuteNode(CustomApprovalBO bo, boolean isPass, String refuseReason, Map<String, Object> variables) {
+        CustomApprovalBO customApprovalBO = getTargetCustomApprovalBO(bo);
+
+        if (isPass) {
+            ApprovalStatusInterface nextStatusY = ApprovalStatusInterface.getNextStatusY(customApprovalBO.getStrategyName(), customApprovalBO.getNodeKey());
+            if (Objects.nonNull(nextStatusY)) {
+                CustomApprovalBO nextBO = new CustomApprovalBO(
+                        nextStatusY.getStrategy(),
+                        bo.getDefinitionKey(),
+                        bo.getDefinitionValue(),
+                        nextStatusY.getNodeKey(),
+                        customApprovalBO.getCustomData()
+                );
+                CommonSpringContextUtil.getBean(CustomApproveService.class).doCreate(nextBO);
+            }
+        }
+
+        if (!isPass) {
+            ApprovalStatusInterface nextStatusN = ApprovalStatusInterface.getNextStatusN(customApprovalBO.getStrategyName(), customApprovalBO.getNodeKey());
+            if (Objects.nonNull(nextStatusN)) {
+                CustomApprovalBO nextBO = new CustomApprovalBO(
+                        nextStatusN.getStrategy(),
+                        bo.getDefinitionKey(),
+                        bo.getDefinitionValue(),
+                        nextStatusN.getNodeKey(),
+                        customApprovalBO.getCustomData()
+                );
+                CommonSpringContextUtil.getBean(CustomApproveService.class).doCreate(nextBO);
+            }
+        }
     }
 
 
